@@ -1,0 +1,61 @@
+pipeline {
+    agent { label 'agentpradeep' }
+
+    options {
+        timestamps()
+    }
+
+    environment {
+        GIT_REPO   = 'https://github.com/rajupradeep07/GitPradeep.git'
+        BRANCH     = 'main'
+        MAVEN_HOME = tool 'Maven3'
+        JAVA_HOME  = tool 'openjdk21'
+        PATH       = "${JAVA_HOME}/bin:${MAVEN_HOME}/bin:${env.PATH}"
+    }
+
+    stages {
+
+        stage('Checkout repo') {
+            steps {
+                git branch: BRANCH,
+                    url: GIT_REPO,
+                    credentialsId: '8cdd8b4c-475a-4d38-8012-a16f879f5e38'
+            }
+        }
+
+        stage('Lint (Checkstyle)') {
+            steps {
+                echo 'Running code quality checks (lint)...'
+                sh '''
+                    cd maven
+                    mvn checkstyle:check -q
+                '''
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Running maven build...'
+                sh '''
+                    cd maven
+                    mvn clean package
+                '''
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                sh '''
+                    cd maven
+                    mvn test
+                '''
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                          testResults: '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+    }
+}
