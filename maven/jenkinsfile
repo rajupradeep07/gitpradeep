@@ -19,7 +19,7 @@ pipeline {
             steps {
                 git branch: BRANCH,
                     url: GIT_REPO,
-                    credentialsId: '8cdd8b4c-475a-4d38-8012-a16f879f5e38'
+                    credentialsId: 'jenkkins'
             }
         }
 
